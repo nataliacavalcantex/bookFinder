@@ -13,7 +13,7 @@ class UserController {
         .min(6)
     });
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: "Validation failed" });
+      return res.status(401).json({ error: "Validation failed" });
     }
 
     const userExists = await User.findOne({
@@ -24,13 +24,12 @@ class UserController {
     if (userExists) {
       return res.status(400).json({ error: "User already exist" });
     }
-    const { id, name, email, provider } = await User.create(req.body);
+    const { id, name, email } = await User.create(req.body);
 
-    return res.json({
+    return res.status(200).json({
       id,
       name,
       email,
-      provider
     });
   }
 
@@ -44,7 +43,7 @@ class UserController {
         .when("oldPassword", (oldPassword, field) =>
           oldPassword ? field.required() : field
         ),
-      corfirmPassowrd: Yup.string().when("password", (password, field) =>
+      confirmPassword: Yup.string().when("password", (password, field) =>
         password ? field.required().oneOf([Yup.ref("password")]) : field
       )
     });
@@ -62,12 +61,11 @@ class UserController {
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(401).json({ error: "Password does not mach" });
     }
-    const { id, name, provider } = await user.update(req.body);
+    const { id, name } = await user.update(req.body);
     return res.json({
       id,
       name,
-      email,
-      provider
+      email
     });
   }
 }
